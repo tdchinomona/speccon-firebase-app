@@ -3,12 +3,8 @@ import {
   query, 
   where, 
   getDocs, 
-  doc, 
-  setDoc,
-  addDoc,
   orderBy,
-  limit,
-  Timestamp
+  limit
 } from 'firebase/firestore';
 import { db } from '../firebase';
 

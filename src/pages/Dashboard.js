@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getCashSummary, getAvailableDates } from '../services/firebaseService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -9,17 +9,7 @@ const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState('2026-02-06');
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadAvailableDates();
-  }, []);
-
-  useEffect(() => {
-    if (selectedDate) {
-      loadData();
-    }
-  }, [selectedDate]);
-
-  const loadAvailableDates = async () => {
+  const loadAvailableDates = useCallback(async () => {
     try {
       const dates = await getAvailableDates();
       setAvailableDates(dates);
@@ -29,9 +19,10 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error loading dates:', error);
     }
-  };
+  }, [selectedDate]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!selectedDate) return;
     try {
       setLoading(true);
       setError(null);
@@ -43,7 +34,17 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
+
+  useEffect(() => {
+    loadAvailableDates();
+  }, [loadAvailableDates]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      loadData();
+    }
+  }, [selectedDate, loadData]);
 
   if (loading) {
     return (
@@ -85,6 +86,8 @@ const Dashboard = () => {
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
+          min={availableDates.length > 0 ? availableDates[availableDates.length - 1] : undefined}
+          max={availableDates.length > 0 ? availableDates[0] : undefined}
           className="px-4 py-2 border rounded-lg"
         />
       </div>
