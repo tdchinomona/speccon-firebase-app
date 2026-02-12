@@ -13,20 +13,20 @@ const Dashboard = () => {
     try {
       const dates = await getAvailableDates();
       setAvailableDates(dates);
-      if (dates.length > 0 && !selectedDate) {
-        setSelectedDate(dates[0]);
+      if (dates.length > 0) {
+        setSelectedDate(prevDate => prevDate || dates[0]);
       }
     } catch (error) {
       console.error('Error loading dates:', error);
     }
-  }, [selectedDate]);
+  }, []);
 
-  const loadData = useCallback(async () => {
-    if (!selectedDate) return;
+  const loadData = useCallback(async (date) => {
+    if (!date) return;
     try {
       setLoading(true);
       setError(null);
-      const data = await getCashSummary(selectedDate);
+      const data = await getCashSummary(date);
       setSummary(data);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -34,7 +34,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate]);
+  }, []);
 
   useEffect(() => {
     loadAvailableDates();
@@ -42,7 +42,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (selectedDate) {
-      loadData();
+      loadData(selectedDate);
     }
   }, [selectedDate, loadData]);
 
