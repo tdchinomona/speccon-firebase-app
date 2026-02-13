@@ -21,6 +21,12 @@ export const getAccountTypes = async () => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
+export const getSubAccounts = async () => {
+  const subAccountsRef = collection(db, 'subAccounts');
+  const snapshot = await getDocs(query(subAccountsRef, where('active', '==', true), orderBy('displayOrder')));
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
 export const getCashPositions = async (date) => {
   const positionsRef = collection(db, 'cashPositions');
   const q = query(positionsRef, where('reportDate', '==', date));
@@ -64,6 +70,68 @@ export const getCashSummary = async (date) => {
   return Object.values(summary);
 };
 
+export const getCashSummaryWithSubAccounts = async (date) => {
+  const positions = await getCashPositions(date);
+  const companies = await getCompanies();
+  const accountTypes = await getAccountTypes();
+  const subAccounts = await getSubAccounts();
+  
+  const summary = {};
+  const subAccountDetails = {};
+  
+  positions.forEach(pos => {
+    if (!summary[pos.companyId]) {
+      const company = companies.find(c => c.id === pos.companyId);
+      summary[pos.companyId] = {
+        companyId: pos.companyId,
+        companyName: company?.name || 'Unknown',
+        companyCode: company?.code || '',
+        bankTotal: 0,
+        assetsTotal: 0,
+        liabilitiesTotal: 0,
+        subAccounts: {}
+      };
+    }
+    
+    const accountType = accountTypes.find(at => at.id === pos.accountTypeId);
+    const category = accountType?.category || '';
+    const amount = Number(pos.amount) || 0;
+    
+    // Track sub-account details
+    if (pos.subAccountId) {
+      const subAccount = subAccounts.find(sa => sa.id === pos.subAccountId);
+      const subAccountKey = `${pos.companyId}_${pos.accountTypeId}_${pos.subAccountId}`;
+      
+      if (!subAccountDetails[subAccountKey]) {
+        subAccountDetails[subAccountKey] = {
+          companyId: pos.companyId,
+          companyName: summary[pos.companyId].companyName,
+          accountTypeId: pos.accountTypeId,
+          accountTypeName: accountType?.name || '',
+          subAccountId: pos.subAccountId,
+          subAccountName: subAccount?.name || pos.subAccountId,
+          amount: 0
+        };
+      }
+      subAccountDetails[subAccountKey].amount += amount;
+    }
+    
+    // Update totals by category
+    if (category === 'Bank') {
+      summary[pos.companyId].bankTotal += amount;
+    } else if (category === 'Current Assets') {
+      summary[pos.companyId].assetsTotal += amount;
+    } else if (category === 'Current Liabilities') {
+      summary[pos.companyId].liabilitiesTotal += amount;
+    }
+  });
+  
+  return {
+    summary: Object.values(summary),
+    subAccountDetails: Object.values(subAccountDetails)
+  };
+};
+
 export const getAvailableDates = async () => {
   const positionsRef = collection(db, 'cashPositions');
   const snapshot = await getDocs(query(positionsRef, orderBy('reportDate', 'desc'), limit(20)));
@@ -74,12 +142,19 @@ export const getAvailableDates = async () => {
 
 export const addCashPosition = async (position) => {
   const positionsRef = collection(db, 'cashPositions');
-  return await addDoc(positionsRef, {
+  const data = {
     reportDate: position.reportDate,
     companyId: position.companyId,
     accountTypeId: position.accountTypeId,
     amount: Number(position.amount)
-  });
+  };
+  
+  // Add subAccountId if provided
+  if (position.subAccountId) {
+    data.subAccountId = position.subAccountId;
+  }
+  
+  return await addDoc(positionsRef, data);
 };
 
 export const batchAddCashPositions = async (positions) => {

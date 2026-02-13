@@ -26,6 +26,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    match /subAccounts/{subAccountId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
     match /cashPositions/{positionId} {
       allow read: if isAuthenticated();
       allow create, update: if isAuthenticated();

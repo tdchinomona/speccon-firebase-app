@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 import { batchAddCashPositions } from '../services/firebaseService';
-import { getCompanies, getAccountTypes } from '../services/firebaseService';
+import { getCompanies, getAccountTypes, getSubAccounts } from '../services/firebaseService';
 
 const ImportData = () => {
   const [file, setFile] = useState(null);
@@ -12,6 +12,7 @@ const ImportData = () => {
   const [success, setSuccess] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [accountTypes, setAccountTypes] = useState([]);
+  const [subAccounts, setSubAccounts] = useState([]);
   const [stats, setStats] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -22,14 +23,20 @@ const ImportData = () => {
 
   const loadReferenceData = async () => {
     try {
-      const [companiesData, accountTypesData] = await Promise.all([
+      const [companiesData, accountTypesData, subAccountsData] = await Promise.all([
         getCompanies(),
-        getAccountTypes()
+        getAccountTypes(),
+        getSubAccounts()
       ]);
       setCompanies(companiesData);
       setAccountTypes(accountTypesData);
+      setSubAccounts(subAccountsData);
     } catch (error) {
       console.error('Error loading reference data:', error);
+      // Sub-accounts might not exist yet, that's okay
+      setCompanies([]);
+      setAccountTypes([]);
+      setSubAccounts([]);
     }
   };
 
@@ -63,6 +70,19 @@ const ImportData = () => {
       const accountType = accountTypes.find(at => at.id.toLowerCase() === row.accountTypeId.trim().toLowerCase());
       if (!accountType) {
         rowErrors.push(`Row ${rowNum}: Account Type ID "${row.accountTypeId}" not found. Available: ${accountTypes.map(at => at.id).join(', ')}`);
+      }
+    }
+
+    // Validate subAccountId if provided (optional field)
+    if (row.subAccountId && row.subAccountId.trim()) {
+      const subAccount = subAccounts.find(sa => sa.id.toLowerCase() === row.subAccountId.trim().toLowerCase());
+      if (!subAccount) {
+        rowErrors.push(`Row ${rowNum}: Sub-Account ID "${row.subAccountId}" not found. Available: ${subAccounts.map(sa => sa.id).join(', ') || 'None (sub-accounts are optional)'}`);
+      } else {
+        // Verify sub-account belongs to the account type
+        if (row.accountTypeId && subAccount.accountTypeId !== row.accountTypeId.trim().toLowerCase()) {
+          rowErrors.push(`Row ${rowNum}: Sub-Account "${row.subAccountId}" does not belong to Account Type "${row.accountTypeId}"`);
+        }
       }
     }
 
@@ -114,12 +134,17 @@ const ImportData = () => {
           if (rowErrors.length > 0) {
             allErrors.push(...rowErrors);
           } else {
-            validRows.push({
+            const validRow = {
               reportDate: row.reportDate.trim(),
               companyId: row.companyId.trim().toLowerCase(),
               accountTypeId: row.accountTypeId.trim().toLowerCase(),
               amount: parseFloat(row.amount.toString().replace(/,/g, ''))
-            });
+            };
+            // Add subAccountId if provided
+            if (row.subAccountId && row.subAccountId.trim()) {
+              validRow.subAccountId = row.subAccountId.trim().toLowerCase();
+            }
+            validRows.push(validRow);
           }
         });
 
@@ -210,13 +235,15 @@ const ImportData = () => {
   };
 
   const downloadTemplate = () => {
-    const template = `reportDate,companyId,accountTypeId,amount
-2026-02-13,speccon,bank-account,1500000
-2026-02-13,speccon,current-assets,750000
-2026-02-13,speccon,current-liabilities,300000
-2026-02-13,megro,bank-account,1200000
-2026-02-13,megro,current-assets,600000
-2026-02-13,megro,current-liabilities,250000`;
+    const template = `reportDate,companyId,accountTypeId,subAccountId,amount
+2026-02-13,speccon,bank-account,,1500000
+2026-02-13,speccon,current-assets,accounts-receivable,500000
+2026-02-13,speccon,current-assets,client-loans,250000
+2026-02-13,speccon,current-liabilities,,300000
+2026-02-13,megro,bank-account,,1200000
+2026-02-13,megro,current-assets,accounts-receivable,400000
+2026-02-13,megro,current-assets,client-loans,200000
+2026-02-13,megro,current-liabilities,,250000`;
 
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -251,11 +278,15 @@ const ImportData = () => {
           <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 mb-6">
             <h2 className="text-lg font-semibold text-blue-900 mb-3">CSV Format Requirements</h2>
             <ul className="space-y-2 text-sm text-blue-800">
-              <li>• <strong>Columns:</strong> reportDate, companyId, accountTypeId, amount</li>
+              <li>• <strong>Required Columns:</strong> reportDate, companyId, accountTypeId, amount</li>
+              <li>• <strong>Optional Column:</strong> subAccountId (for detailed breakdown)</li>
               <li>• <strong>Date format:</strong> YYYY-MM-DD (e.g., 2026-02-13)</li>
               <li>• <strong>Amount:</strong> Numbers only, no commas or currency symbols (e.g., 1500000 for R1,500,000)</li>
               <li>• <strong>Company IDs:</strong> Must match existing companies: {companies.map(c => c.id).join(', ') || 'Loading...'}</li>
               <li>• <strong>Account Type IDs:</strong> Must match existing account types: {accountTypes.map(at => at.id).join(', ') || 'Loading...'}</li>
+              {subAccounts.length > 0 && (
+                <li>• <strong>Sub-Account IDs (optional):</strong> {subAccounts.map(sa => sa.id).join(', ')}</li>
+              )}
             </ul>
             <button
               onClick={downloadTemplate}
@@ -306,6 +337,7 @@ const ImportData = () => {
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Company</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Account Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sub-Account</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
                     </tr>
                   </thead>
@@ -315,6 +347,7 @@ const ImportData = () => {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.reportDate}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.companyId}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.accountTypeId}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{row.subAccountId || '-'}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium text-gray-900">
                           R {row.amount.toLocaleString()}
                         </td>

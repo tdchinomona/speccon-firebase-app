@@ -18,25 +18,39 @@
 
 Your CSV file must have these columns (in this order):
 
-| Column | Description | Example |
-|--------|-------------|---------|
-| `reportDate` | Date in YYYY-MM-DD format | `2026-02-13` |
-| `companyId` | Company document ID (lowercase) | `speccon` |
-| `accountTypeId` | Account type document ID | `bank-account` |
-| `amount` | Financial amount (number only) | `1500000` |
+| Column | Required | Description | Example |
+|--------|----------|-------------|---------|
+| `reportDate` | ✅ Yes | Date in YYYY-MM-DD format | `2026-02-13` |
+| `companyId` | ✅ Yes | Company document ID (lowercase) | `speccon` |
+| `accountTypeId` | ✅ Yes | Account type document ID | `bank-account` |
+| `subAccountId` | ⚠️ Optional | Sub-account document ID | `accounts-receivable` |
+| `amount` | ✅ Yes | Financial amount (number only) | `1500000` |
+
+**Note:** `subAccountId` is optional. Leave it blank if you don't have sub-accounts set up yet.
 
 ### Step 4: Fill in Your Data
 
-**Example CSV content:**
+**Example CSV content (without sub-accounts):**
 ```csv
-reportDate,companyId,accountTypeId,amount
-2026-02-13,speccon,bank-account,1500000
-2026-02-13,speccon,current-assets,750000
-2026-02-13,speccon,current-liabilities,300000
-2026-02-13,megro,bank-account,1200000
-2026-02-13,megro,current-assets,600000
-2026-02-13,megro,current-liabilities,250000
+reportDate,companyId,accountTypeId,subAccountId,amount
+2026-02-13,speccon,bank-account,,1500000
+2026-02-13,speccon,current-assets,,750000
+2026-02-13,speccon,current-liabilities,,300000
 ```
+
+**Example CSV content (with sub-accounts):**
+```csv
+reportDate,companyId,accountTypeId,subAccountId,amount
+2026-02-13,speccon,bank-account,,1500000
+2026-02-13,speccon,current-assets,accounts-receivable,500000
+2026-02-13,speccon,current-assets,client-loans,250000
+2026-02-13,speccon,current-liabilities,,300000
+2026-02-13,megro,bank-account,,1200000
+2026-02-13,megro,current-assets,accounts-receivable,400000
+2026-02-13,megro,current-assets,client-loans,200000
+```
+
+**Note:** Leave `subAccountId` empty (blank) if you don't want to use sub-accounts for that row.
 
 ### Step 5: Upload and Import
 
