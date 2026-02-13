@@ -49,13 +49,14 @@ export const getCashSummary = async (date) => {
     
     const accountType = accountTypes.find(at => at.id === pos.accountTypeId);
     const category = accountType?.category || '';
+    const amount = Number(pos.amount) || 0;
     
     if (category === 'Bank') {
-      summary[pos.companyId].bankTotal += pos.amount;
+      summary[pos.companyId].bankTotal += amount;
     } else if (category === 'Current Assets') {
-      summary[pos.companyId].assetsTotal += pos.amount;
+      summary[pos.companyId].assetsTotal += amount;
     } else if (category === 'Current Liabilities') {
-      summary[pos.companyId].liabilitiesTotal += pos.amount;
+      summary[pos.companyId].liabilitiesTotal += amount;
     }
   });
   

@@ -66,16 +66,16 @@ const Dashboard = () => {
     );
   }
 
-  const totalBank = summary.reduce((sum, co) => sum + (co.bankTotal || 0), 0);
-  const totalAssets = summary.reduce((sum, co) => sum + (co.assetsTotal || 0), 0);
-  const totalLiabilities = summary.reduce((sum, co) => sum + (co.liabilitiesTotal || 0), 0);
+  const totalBank = summary.reduce((sum, co) => sum + (Number(co.bankTotal) || 0), 0);
+  const totalAssets = summary.reduce((sum, co) => sum + (Number(co.assetsTotal) || 0), 0);
+  const totalLiabilities = summary.reduce((sum, co) => sum + (Number(co.liabilitiesTotal) || 0), 0);
   const netPosition = totalBank + totalAssets - totalLiabilities;
 
   const chartData = summary.map(co => ({
     name: co.companyName,
-    Bank: co.bankTotal || 0,
-    Assets: co.assetsTotal || 0,
-    Liabilities: co.liabilitiesTotal || 0
+    Bank: Number(co.bankTotal) || 0,
+    Assets: Number(co.assetsTotal) || 0,
+    Liabilities: Number(co.liabilitiesTotal) || 0
   }));
 
   return (
@@ -102,25 +102,25 @@ const Dashboard = () => {
             <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
               <div className="text-sm text-gray-600 uppercase font-semibold">Total Bank</div>
               <div className="text-3xl font-bold text-blue-600 mt-2">
-                R {totalBank.toLocaleString()}
+                R {totalBank.toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </div>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
               <div className="text-sm text-gray-600 uppercase font-semibold">Current Assets</div>
               <div className="text-3xl font-bold text-green-600 mt-2">
-                R {totalAssets.toLocaleString()}
+                R {totalAssets.toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </div>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-500">
               <div className="text-sm text-gray-600 uppercase font-semibold">Liabilities</div>
               <div className="text-3xl font-bold text-red-600 mt-2">
-                R {totalLiabilities.toLocaleString()}
+                R {totalLiabilities.toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </div>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
               <div className="text-sm text-gray-600 uppercase font-semibold">Net Position</div>
               <div className="text-3xl font-bold text-purple-600 mt-2">
-                R {netPosition.toLocaleString()}
+                R {netPosition.toLocaleString('en-ZA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
               </div>
             </div>
           </div>
