@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ImportData from './pages/ImportData';
 import Layout from './components/Layout';
@@ -27,6 +28,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route
         path="/"
         element={
