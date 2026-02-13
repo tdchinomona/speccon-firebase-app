@@ -4,7 +4,8 @@ import {
   where, 
   getDocs, 
   orderBy,
-  limit
+  limit,
+  addDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -71,3 +72,28 @@ export const getAvailableDates = async () => {
   return Array.from(dates).sort().reverse();
 };
 
+export const addCashPosition = async (position) => {
+  const positionsRef = collection(db, 'cashPositions');
+  return await addDoc(positionsRef, {
+    reportDate: position.reportDate,
+    companyId: position.companyId,
+    accountTypeId: position.accountTypeId,
+    amount: Number(position.amount)
+  });
+};
+
+export const batchAddCashPositions = async (positions) => {
+  const results = [];
+  
+  // Process each position
+  for (const position of positions) {
+    try {
+      const result = await addCashPosition(position);
+      results.push({ success: true, id: result.id });
+    } catch (error) {
+      results.push({ success: false, error: error.message });
+    }
+  }
+  
+  return results;
+};

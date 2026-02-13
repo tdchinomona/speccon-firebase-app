@@ -25,9 +25,17 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUserProfile(userDoc.data());
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            setUserProfile(userDoc.data());
+          } else {
+            console.warn('User profile not found in Firestore. Please create user document with UID:', firebaseUser.uid);
+            setUserProfile(null);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUserProfile(null);
         }
       } else {
         setUser(null);
@@ -41,9 +49,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    const userDoc = await getDoc(doc(db, 'users', result.user.uid));
-    if (userDoc.exists()) {
-      setUserProfile(userDoc.data());
+    try {
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (userDoc.exists()) {
+        setUserProfile(userDoc.data());
+      } else {
+        console.warn('User profile not found in Firestore. Please create user document with UID:', result.user.uid);
+        throw new Error('User profile not found. Please contact administrator to create your user profile.');
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      if (error.message.includes('offline') || error.message.includes('Failed to get document')) {
+        throw new Error('User profile not found in database. Please ensure your user profile exists in Firestore.');
+      }
+      throw error;
     }
     return result;
   };

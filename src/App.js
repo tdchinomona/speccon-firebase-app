@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ImportData from './pages/ImportData';
 import Layout from './components/Layout';
 
 const PrivateRoute = ({ children }) => {
@@ -32,6 +33,16 @@ function AppRoutes() {
           <PrivateRoute>
             <Layout>
               <Dashboard />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/import"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ImportData />
             </Layout>
           </PrivateRoute>
         }

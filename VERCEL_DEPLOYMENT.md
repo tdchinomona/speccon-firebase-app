@@ -121,13 +121,30 @@ Click **"Continue"** or **"Deploy"** (don't deploy yet - we need to add environm
 
 **This is the most important step!** Your app needs Firebase configuration.
 
-#### 5.1 Before Deploying
+#### 5.1 Navigate to Environment Variables
 
-Before clicking "Deploy", click on **"Environment Variables"** section.
+**Option A: During Project Import (Before First Deploy)**
+1. When importing your project, you'll see a **"Environment Variables"** section
+2. Click on it to expand
+3. You can add variables here before deploying
+
+**Option B: After Project is Created (Recommended)**
+1. Go to your project dashboard: https://vercel.com/dashboard
+2. Click on your project name (`speccon-firebase-app`)
+3. Click **"Settings"** in the top navigation bar
+4. In the left sidebar, click **"Environment Variables"**
+5. You'll see a page with a button that says **"Add New"**
 
 #### 5.2 Add Each Variable
 
-Click **"Add"** for each of these variables:
+For each variable, follow these steps:
+
+1. Click the **"Add New"** button (or **"Add"** if during import)
+2. You'll see a form with:
+   - **Key** field (variable name)
+   - **Value** field (the actual value)
+   - **Environment** checkboxes (Production, Preview, Development)
+3. Fill in the details:
 
 | Variable Name | Value | Where to Find It |
 |--------------|-------|------------------|
@@ -137,6 +154,15 @@ Click **"Add"** for each of these variables:
 | `REACT_APP_FIREBASE_STORAGE_BUCKET` | `your-project.appspot.com` | Same as above |
 | `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` | `123456789` | Same as above |
 | `REACT_APP_FIREBASE_APP_ID` | `1:123456789:web:abcdef` | Same as above |
+
+4. **Important:** Check all three environment boxes:
+   - ✅ **Production** (for live site)
+   - ✅ **Preview** (for preview deployments)
+   - ✅ **Development** (optional, for local dev)
+
+5. Click **"Save"**
+
+6. Repeat steps 1-5 for all 6 variables
 
 #### 5.3 Where to Find Firebase Config
 
