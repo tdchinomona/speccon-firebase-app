@@ -9,8 +9,6 @@ import {
   Tooltip, 
   Legend, 
   ResponsiveContainer,
-  LineChart,
-  Line,
   Cell,
   PieChart,
   Pie
@@ -132,8 +130,6 @@ const Dashboard = () => {
     }
     return null;
   };
-
-  const COLORS = ['#2563eb', '#10b981', '#ef4444', '#8b5cf6'];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
