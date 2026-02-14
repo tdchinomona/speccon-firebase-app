@@ -21,12 +21,15 @@ Your CSV file must have these columns (in this order):
 | Column | Required | Description | Example |
 |--------|----------|-------------|---------|
 | `reportDate` | ✅ Yes | Date in YYYY-MM-DD format | `2026-02-13` |
-| `companyId` | ✅ Yes | Company document ID (lowercase) | `speccon` |
-| `accountTypeId` | ✅ Yes | Account type document ID | `bank-account` |
-| `subAccountId` | ⚠️ Optional | Sub-account document ID | `accounts-receivable` |
+| `companyId` | ✅ Yes | Company ID (any value allowed) | `speccon` or `new-company` |
+| `accountTypeId` | ✅ Yes | Account type ID (any value allowed) | `bank-account` or `custom-type` |
+| `subAccountId` | ⚠️ Optional | Sub-account ID (any value allowed) | `accounts-receivable` or `custom-sub` |
 | `amount` | ✅ Yes | Financial amount (number only) | `1500000` |
 
-**Note:** `subAccountId` is optional. Leave it blank if you don't have sub-accounts set up yet.
+**Note:** 
+- `subAccountId` is optional. Leave it blank if you don't have sub-accounts.
+- **Custom values are accepted!** You can use any company ID, account type ID, or sub-account ID, even if they don't exist in Firestore yet.
+- If custom IDs don't exist in Firestore, they will appear as "Unknown" on the dashboard until you create them.
 
 ### Step 4: Fill in Your Data
 
@@ -158,21 +161,21 @@ reportDate,companyId,accountTypeId,amount
 
 ## Troubleshooting
 
-### "Company ID not found"
+### Custom Values Accepted
 
-**Problem:** Company ID in CSV doesn't match Firestore  
-**Fix:** 
-1. Check Firebase Console → `companies` collection
-2. Use exact document ID (case-sensitive)
-3. Common IDs: `speccon`, `megro`, `infinity`, `andebe`, `tap`
+**Good News:** You can now use any company ID, account type ID, or sub-account ID in your CSV, even if they don't exist in Firestore!
 
-### "Account Type ID not found"
+**What happens:**
+- ✅ Import will succeed with custom values
+- ⚠️ Custom companies will show as "Unknown (ID: your-company-id)" on dashboard
+- ⚠️ Custom account types will be categorized automatically based on name patterns:
+  - Contains "bank" or "cash" → Bank
+  - Contains "asset" or "receivable" or "loan" → Current Assets
+  - Contains "liabilit" or "payable" or "debt" → Current Liabilities
 
-**Problem:** Account Type ID in CSV doesn't match Firestore  
-**Fix:**
-1. Check Firebase Console → `accountTypes` collection
-2. Use exact document ID (case-sensitive)
-3. Common IDs: `bank-account`, `current-assets`, `current-liabilities`
+**To fix "Unknown" display:**
+1. Create the company/account type in Firestore with the exact ID from your CSV
+2. The dashboard will then show the proper name
 
 ### "Invalid date format"
 

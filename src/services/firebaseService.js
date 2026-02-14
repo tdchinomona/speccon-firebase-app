@@ -43,10 +43,13 @@ export const getCashSummary = async (date) => {
   
   positions.forEach(pos => {
     if (!summary[pos.companyId]) {
-      const company = companies.find(c => c.id === pos.companyId);
+      // Case-insensitive lookup for company
+      const company = companies.find(c => 
+        c.id.toLowerCase() === (pos.companyId || '').toLowerCase()
+      );
       summary[pos.companyId] = {
         companyId: pos.companyId,
-        companyName: company?.name || 'Unknown',
+        companyName: company?.name || `Unknown (ID: ${pos.companyId})`,
         companyCode: company?.code || '',
         bankTotal: 0,
         assetsTotal: 0,
@@ -54,15 +57,30 @@ export const getCashSummary = async (date) => {
       };
     }
     
-    const accountType = accountTypes.find(at => at.id === pos.accountTypeId);
+    const accountType = accountTypes.find(at => 
+      at.id.toLowerCase() === (pos.accountTypeId || '').toLowerCase()
+    );
     const category = accountType?.category || '';
     const amount = Number(pos.amount) || 0;
     
-    if (category === 'Bank') {
+    // If account type not found, try to infer category from common patterns
+    let inferredCategory = category;
+    if (!category && pos.accountTypeId) {
+      const accountTypeLower = pos.accountTypeId.toLowerCase();
+      if (accountTypeLower.includes('bank') || accountTypeLower.includes('cash')) {
+        inferredCategory = 'Bank';
+      } else if (accountTypeLower.includes('asset') || accountTypeLower.includes('receivable') || accountTypeLower.includes('loan')) {
+        inferredCategory = 'Current Assets';
+      } else if (accountTypeLower.includes('liabilit') || accountTypeLower.includes('payable') || accountTypeLower.includes('debt')) {
+        inferredCategory = 'Current Liabilities';
+      }
+    }
+    
+    if (inferredCategory === 'Bank') {
       summary[pos.companyId].bankTotal += amount;
-    } else if (category === 'Current Assets') {
+    } else if (inferredCategory === 'Current Assets') {
       summary[pos.companyId].assetsTotal += amount;
-    } else if (category === 'Current Liabilities') {
+    } else if (inferredCategory === 'Current Liabilities') {
       summary[pos.companyId].liabilitiesTotal += amount;
     }
   });
@@ -81,10 +99,13 @@ export const getCashSummaryWithSubAccounts = async (date) => {
   
   positions.forEach(pos => {
     if (!summary[pos.companyId]) {
-      const company = companies.find(c => c.id === pos.companyId);
+      // Case-insensitive lookup for company
+      const company = companies.find(c => 
+        c.id.toLowerCase() === (pos.companyId || '').toLowerCase()
+      );
       summary[pos.companyId] = {
         companyId: pos.companyId,
-        companyName: company?.name || 'Unknown',
+        companyName: company?.name || `Unknown (ID: ${pos.companyId})`,
         companyCode: company?.code || '',
         bankTotal: 0,
         assetsTotal: 0,
@@ -93,13 +114,30 @@ export const getCashSummaryWithSubAccounts = async (date) => {
       };
     }
     
-    const accountType = accountTypes.find(at => at.id === pos.accountTypeId);
+    const accountType = accountTypes.find(at => 
+      at.id.toLowerCase() === (pos.accountTypeId || '').toLowerCase()
+    );
     const category = accountType?.category || '';
     const amount = Number(pos.amount) || 0;
     
+    // If account type not found, try to infer category from common patterns
+    let inferredCategory = category;
+    if (!category && pos.accountTypeId) {
+      const accountTypeLower = pos.accountTypeId.toLowerCase();
+      if (accountTypeLower.includes('bank') || accountTypeLower.includes('cash')) {
+        inferredCategory = 'Bank';
+      } else if (accountTypeLower.includes('asset') || accountTypeLower.includes('receivable') || accountTypeLower.includes('loan')) {
+        inferredCategory = 'Current Assets';
+      } else if (accountTypeLower.includes('liabilit') || accountTypeLower.includes('payable') || accountTypeLower.includes('debt')) {
+        inferredCategory = 'Current Liabilities';
+      }
+    }
+    
     // Track sub-account details
     if (pos.subAccountId) {
-      const subAccount = subAccounts.find(sa => sa.id === pos.subAccountId);
+      const subAccount = subAccounts.find(sa => 
+        sa.id.toLowerCase() === (pos.subAccountId || '').toLowerCase()
+      );
       const subAccountKey = `${pos.companyId}_${pos.accountTypeId}_${pos.subAccountId}`;
       
       if (!subAccountDetails[subAccountKey]) {
@@ -107,7 +145,7 @@ export const getCashSummaryWithSubAccounts = async (date) => {
           companyId: pos.companyId,
           companyName: summary[pos.companyId].companyName,
           accountTypeId: pos.accountTypeId,
-          accountTypeName: accountType?.name || '',
+          accountTypeName: accountType?.name || pos.accountTypeId,
           subAccountId: pos.subAccountId,
           subAccountName: subAccount?.name || pos.subAccountId,
           amount: 0
@@ -117,11 +155,11 @@ export const getCashSummaryWithSubAccounts = async (date) => {
     }
     
     // Update totals by category
-    if (category === 'Bank') {
+    if (inferredCategory === 'Bank') {
       summary[pos.companyId].bankTotal += amount;
-    } else if (category === 'Current Assets') {
+    } else if (inferredCategory === 'Current Assets') {
       summary[pos.companyId].assetsTotal += amount;
-    } else if (category === 'Current Liabilities') {
+    } else if (inferredCategory === 'Current Liabilities') {
       summary[pos.companyId].liabilitiesTotal += amount;
     }
   });

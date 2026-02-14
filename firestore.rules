@@ -33,7 +33,7 @@ service cloud.firestore {
     
     match /cashPositions/{positionId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated();
+      allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
     

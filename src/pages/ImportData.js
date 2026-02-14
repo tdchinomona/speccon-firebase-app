@@ -1,10 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Papa from 'papaparse';
 import { batchAddCashPositions } from '../services/firebaseService';
 import { getCompanies, getAccountTypes, getSubAccounts } from '../services/firebaseService';
 
 const ImportData = () => {
+  const { userProfile, loading: authLoading } = useAuth();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -17,9 +19,20 @@ const ImportData = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
+  const isAdmin = userProfile?.role === 'admin';
+
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      // Redirect non-admin users to dashboard
+      navigate('/', { replace: true });
+    }
+  }, [authLoading, isAdmin, navigate]);
+
   React.useEffect(() => {
-    loadReferenceData();
-  }, []);
+    if (isAdmin) {
+      loadReferenceData();
+    }
+  }, [isAdmin]);
 
   const loadReferenceData = async () => {
     try {
@@ -55,36 +68,20 @@ const ImportData = () => {
       }
     }
 
+    // Validate companyId format (allow any value, no existence check)
     if (!row.companyId || !row.companyId.trim()) {
       rowErrors.push(`Row ${rowNum}: Missing companyId`);
-    } else {
-      const company = companies.find(c => c.id.toLowerCase() === row.companyId.trim().toLowerCase());
-      if (!company) {
-        rowErrors.push(`Row ${rowNum}: Company ID "${row.companyId}" not found. Available: ${companies.map(c => c.id).join(', ')}`);
-      }
     }
+    // Note: Custom company IDs are allowed - they don't need to exist in Firestore
 
+    // Validate accountTypeId format (allow any value, no existence check)
     if (!row.accountTypeId || !row.accountTypeId.trim()) {
       rowErrors.push(`Row ${rowNum}: Missing accountTypeId`);
-    } else {
-      const accountType = accountTypes.find(at => at.id.toLowerCase() === row.accountTypeId.trim().toLowerCase());
-      if (!accountType) {
-        rowErrors.push(`Row ${rowNum}: Account Type ID "${row.accountTypeId}" not found. Available: ${accountTypes.map(at => at.id).join(', ')}`);
-      }
     }
+    // Note: Custom account type IDs are allowed - they don't need to exist in Firestore
 
-    // Validate subAccountId if provided (optional field)
-    if (row.subAccountId && row.subAccountId.trim()) {
-      const subAccount = subAccounts.find(sa => sa.id.toLowerCase() === row.subAccountId.trim().toLowerCase());
-      if (!subAccount) {
-        rowErrors.push(`Row ${rowNum}: Sub-Account ID "${row.subAccountId}" not found. Available: ${subAccounts.map(sa => sa.id).join(', ') || 'None (sub-accounts are optional)'}`);
-      } else {
-        // Verify sub-account belongs to the account type
-        if (row.accountTypeId && subAccount.accountTypeId !== row.accountTypeId.trim().toLowerCase()) {
-          rowErrors.push(`Row ${rowNum}: Sub-Account "${row.subAccountId}" does not belong to Account Type "${row.accountTypeId}"`);
-        }
-      }
-    }
+    // Validate subAccountId if provided (optional field, allow any value)
+    // No existence check - custom sub-account IDs are allowed
 
     if (!row.amount || row.amount.trim() === '') {
       rowErrors.push(`Row ${rowNum}: Missing amount`);
@@ -254,6 +251,43 @@ const ImportData = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-speccon-blue border-t-transparent"></div>
+          <div className="mt-6 text-xl font-semibold text-gray-700">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center border border-red-200">
+          <div className="text-red-600 mb-4">
+            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+          <p className="text-gray-600 mb-6">
+            You need administrator privileges to import data. Please contact your administrator for access.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-speccon-blue text-white rounded-lg hover:bg-speccon-blue-light transition-colors font-semibold"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       <div className="container mx-auto px-6 py-8">
@@ -282,12 +316,16 @@ const ImportData = () => {
               <li>• <strong>Optional Column:</strong> subAccountId (for detailed breakdown)</li>
               <li>• <strong>Date format:</strong> YYYY-MM-DD (e.g., 2026-02-13)</li>
               <li>• <strong>Amount:</strong> Numbers only, no commas or currency symbols (e.g., 1500000 for R1,500,000)</li>
-              <li>• <strong>Company IDs:</strong> Must match existing companies: {companies.map(c => c.id).join(', ') || 'Loading...'}</li>
-              <li>• <strong>Account Type IDs:</strong> Must match existing account types: {accountTypes.map(at => at.id).join(', ') || 'Loading...'}</li>
-              {subAccounts.length > 0 && (
-                <li>• <strong>Sub-Account IDs (optional):</strong> {subAccounts.map(sa => sa.id).join(', ')}</li>
-              )}
+              <li>• <strong>Company IDs:</strong> Any value allowed (custom companies accepted)</li>
+              <li>• <strong>Account Type IDs:</strong> Any value allowed (custom account types accepted)</li>
+              <li>• <strong>Sub-Account IDs:</strong> Any value allowed (optional, custom sub-accounts accepted)</li>
             </ul>
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs text-yellow-800">
+                <strong>Note:</strong> Custom company/account type IDs are accepted. If they don't exist in Firestore, 
+                they will appear as "Unknown" on the dashboard. You can create them in Firestore later for proper display.
+              </p>
+            </div>
             <button
               onClick={downloadTemplate}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
