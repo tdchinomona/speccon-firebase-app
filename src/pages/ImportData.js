@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Papa from 'papaparse';
 import { batchAddCashPositions } from '../services/firebaseService';
-import { getCompanies, getAccountTypes, getSubAccounts } from '../services/firebaseService';
 
 const ImportData = () => {
   const { userProfile, loading: authLoading } = useAuth();
@@ -12,9 +11,6 @@ const ImportData = () => {
   const [preview, setPreview] = useState(null);
   const [errors, setErrors] = useState([]);
   const [success, setSuccess] = useState(false);
-  const [companies, setCompanies] = useState([]);
-  const [accountTypes, setAccountTypes] = useState([]);
-  const [subAccounts, setSubAccounts] = useState([]);
   const [stats, setStats] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -27,31 +23,6 @@ const ImportData = () => {
       navigate('/', { replace: true });
     }
   }, [authLoading, isAdmin, navigate]);
-
-  React.useEffect(() => {
-    if (isAdmin) {
-      loadReferenceData();
-    }
-  }, [isAdmin]);
-
-  const loadReferenceData = async () => {
-    try {
-      const [companiesData, accountTypesData, subAccountsData] = await Promise.all([
-        getCompanies(),
-        getAccountTypes(),
-        getSubAccounts()
-      ]);
-      setCompanies(companiesData);
-      setAccountTypes(accountTypesData);
-      setSubAccounts(subAccountsData);
-    } catch (error) {
-      console.error('Error loading reference data:', error);
-      // Sub-accounts might not exist yet, that's okay
-      setCompanies([]);
-      setAccountTypes([]);
-      setSubAccounts([]);
-    }
-  };
 
   const validateRow = (row, index) => {
     const rowErrors = [];
