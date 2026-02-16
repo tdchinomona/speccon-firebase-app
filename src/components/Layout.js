@@ -3,8 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
-  const { userProfile, logout } = useAuth();
+  const { userProfile, loading, logout } = useAuth();
   const location = useLocation();
+
+  // Check if user is admin (wait for profile to load)
+  const isAdmin = !loading && userProfile?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,7 +35,7 @@ const Layout = ({ children }) => {
                 >
                   Dashboard
                 </Link>
-                {userProfile?.role === 'admin' && (
+                {isAdmin && (
                   <Link
                     to="/import"
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
