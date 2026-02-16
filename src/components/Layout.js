@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -6,8 +6,28 @@ const Layout = ({ children }) => {
   const { userProfile, loading, logout } = useAuth();
   const location = useLocation();
 
-  // Check if user is admin (wait for profile to load)
-  const isAdmin = !loading && userProfile?.role === 'admin';
+  // Check if user is admin - check both ways for reliability
+  const isAdmin = userProfile?.role === 'admin';
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('Layout Debug:', {
+      loading,
+      userProfile,
+      role: userProfile?.role,
+      isAdmin,
+      hasProfile: !!userProfile
+    });
+  }, [loading, userProfile, isAdmin]);
+  
+  // Debug logging (remove in production if needed)
+  useEffect(() => {
+    if (!loading) {
+      console.log('Layout - User Profile:', userProfile);
+      console.log('Layout - Is Admin:', isAdmin);
+      console.log('Layout - Role:', userProfile?.role);
+    }
+  }, [loading, userProfile, isAdmin]);
 
   return (
     <div className="min-h-screen bg-gray-50">
