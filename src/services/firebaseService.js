@@ -49,7 +49,7 @@ export const getCashSummary = async (date) => {
       );
       summary[pos.companyId] = {
         companyId: pos.companyId,
-        companyName: company?.name || `Unknown (ID: ${pos.companyId})`,
+        companyName: company?.name || pos.companyId,
         companyCode: company?.code || '',
         bankTotal: 0,
         assetsTotal: 0,
@@ -105,7 +105,7 @@ export const getCashSummaryWithSubAccounts = async (date) => {
       );
       summary[pos.companyId] = {
         companyId: pos.companyId,
-        companyName: company?.name || `Unknown (ID: ${pos.companyId})`,
+        companyName: company?.name || pos.companyId,
         companyCode: company?.code || '',
         bankTotal: 0,
         assetsTotal: 0,
