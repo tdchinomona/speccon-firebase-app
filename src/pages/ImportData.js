@@ -1,11 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import Papa from 'papaparse';
 import { batchAddCashPositions } from '../services/firebaseService';
 
 const ImportData = () => {
-  const { userProfile, loading: authLoading } = useAuth();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -14,15 +12,6 @@ const ImportData = () => {
   const [stats, setStats] = useState(null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-
-  const isAdmin = userProfile?.role === 'admin';
-
-  useEffect(() => {
-    if (!authLoading && !isAdmin) {
-      // Redirect non-admin users to dashboard
-      navigate('/', { replace: true });
-    }
-  }, [authLoading, isAdmin, navigate]);
 
   const validateRow = (row, index) => {
     const rowErrors = [];
@@ -223,42 +212,6 @@ const ImportData = () => {
   };
 
   // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-speccon-blue border-t-transparent"></div>
-          <div className="mt-6 text-xl font-semibold text-gray-700">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show access denied if not admin
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center border border-red-200">
-          <div className="text-red-600 mb-4">
-            <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-          <p className="text-gray-600 mb-6">
-            You need administrator privileges to import data. Please contact your administrator for access.
-          </p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-3 bg-speccon-blue text-white rounded-lg hover:bg-speccon-blue-light transition-colors font-semibold"
-          >
-            Go to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       <div className="container mx-auto px-6 py-8">

@@ -1,33 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
   const { userProfile, loading, logout } = useAuth();
   const location = useLocation();
-
-  // Check if user is admin - check both ways for reliability
-  const isAdmin = userProfile?.role === 'admin';
-  
-  // Debug logging
-  useEffect(() => {
-    console.log('Layout Debug:', {
-      loading,
-      userProfile,
-      role: userProfile?.role,
-      isAdmin,
-      hasProfile: !!userProfile
-    });
-  }, [loading, userProfile, isAdmin]);
-  
-  // Debug logging (remove in production if needed)
-  useEffect(() => {
-    if (!loading) {
-      console.log('Layout - User Profile:', userProfile);
-      console.log('Layout - Is Admin:', isAdmin);
-      console.log('Layout - Role:', userProfile?.role);
-    }
-  }, [loading, userProfile, isAdmin]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -55,18 +32,16 @@ const Layout = ({ children }) => {
                 >
                   Dashboard
                 </Link>
-                {isAdmin && (
-                  <Link
-                    to="/import"
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      location.pathname === '/import'
-                        ? 'bg-white text-speccon-blue'
-                        : 'text-white hover:bg-white hover:bg-opacity-20'
-                    }`}
-                  >
-                    Import Data
-                  </Link>
-                )}
+                <Link
+                  to="/import"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    location.pathname === '/import'
+                      ? 'bg-white text-speccon-blue'
+                      : 'text-white hover:bg-white hover:bg-opacity-20'
+                  }`}
+                >
+                  Import Data
+                </Link>
               </nav>
               <span className="text-sm text-white">
                 {userProfile?.firstName} {userProfile?.lastName}
