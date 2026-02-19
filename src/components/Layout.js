@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
-  const { userProfile, loading, logout } = useAuth();
+  const { userProfile, logout } = useAuth();
   const location = useLocation();
 
   return (
