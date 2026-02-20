@@ -49,9 +49,20 @@ export const getCashSummary = async (date) => {
       const company = companies.find(c => 
         c.id.toLowerCase() === (pos.companyId || '').toLowerCase()
       );
+      // Always use name from database if available, otherwise format the ID
+      let displayName = pos.companyId;
+      if (company?.name) {
+        displayName = company.name;
+      } else if (pos.companyId) {
+        // Format ID: capitalize first letter of each word
+        displayName = pos.companyId
+          .split(/[-_\s]+/)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      }
       summary[pos.companyId] = {
         companyId: pos.companyId,
-        companyName: company?.name || pos.companyId,
+        companyName: displayName,
         companyCode: company?.code || '',
         bankTotal: 0,
         assetsTotal: 0,
@@ -105,9 +116,20 @@ export const getCashSummaryWithSubAccounts = async (date) => {
       const company = companies.find(c => 
         c.id.toLowerCase() === (pos.companyId || '').toLowerCase()
       );
+      // Always use name from database if available, otherwise format the ID
+      let displayName = pos.companyId;
+      if (company?.name) {
+        displayName = company.name;
+      } else if (pos.companyId) {
+        // Format ID: capitalize first letter of each word
+        displayName = pos.companyId
+          .split(/[-_\s]+/)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      }
       summary[pos.companyId] = {
         companyId: pos.companyId,
-        companyName: company?.name || pos.companyId,
+        companyName: displayName,
         companyCode: company?.code || '',
         bankTotal: 0,
         assetsTotal: 0,
