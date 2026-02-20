@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getCashSummary, getCashSummaryWithSubAccounts, getAvailableDates, deleteAllCashPositions } from '../services/firebaseService';
-import { useAuth } from '../contexts/AuthContext';
 import { 
   BarChart, 
   Bar, 
@@ -17,7 +16,6 @@ import {
 import { format } from 'date-fns';
 
 const Dashboard = () => {
-  const { userProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState([]);
   const [subAccountDetails, setSubAccountDetails] = useState([]);
@@ -96,6 +94,7 @@ const Dashboard = () => {
   const totalLiabilities = summary.reduce((sum, co) => sum + (Number(co.liabilitiesTotal) || 0), 0);
   const netPosition = totalBank + totalAssets - totalLiabilities;
   const totalAssetsAndBank = totalBank + totalAssets;
+  const totalCapital = totalBank + totalAssets + totalLiabilities; // Total capital base
 
   // Format currency
   const formatCurrency = (value) => {
@@ -107,10 +106,12 @@ const Dashboard = () => {
     }).format(value);
   };
 
-  // Calculate percentages
-  const bankPercentage = totalAssetsAndBank > 0 ? ((totalBank / totalAssetsAndBank) * 100).toFixed(1) : 0;
-  const assetsPercentage = totalAssetsAndBank > 0 ? ((totalAssets / totalAssetsAndBank) * 100).toFixed(1) : 0;
-  const netPositionPercentage = totalAssetsAndBank > 0 ? ((netPosition / totalAssetsAndBank) * 100).toFixed(1) : 0;
+  // Calculate percentages - all as percentage of total capital (Bank + Assets + Liabilities)
+  // This way all four percentages add up to 100%
+  const bankPercentage = totalCapital > 0 ? ((totalBank / totalCapital) * 100).toFixed(1) : 0;
+  const assetsPercentage = totalCapital > 0 ? ((totalAssets / totalCapital) * 100).toFixed(1) : 0;
+  const liabilitiesPercentage = totalCapital > 0 ? ((totalLiabilities / totalCapital) * 100).toFixed(1) : 0;
+  const netPositionPercentage = totalCapital > 0 ? ((netPosition / totalCapital) * 100).toFixed(1) : 0;
 
   const chartData = summary.map(co => ({
     name: co.companyName,
@@ -293,7 +294,7 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <span className="text-xs font-semibold text-red-700 bg-red-200 px-3 py-1 rounded-full">
-                      {totalAssetsAndBank > 0 ? ((totalLiabilities / totalAssetsAndBank) * 100).toFixed(1) : 0}%
+                      {liabilitiesPercentage}%
                     </span>
                   </div>
                   <div className="text-sm font-semibold text-red-700 uppercase tracking-wide mb-1">Liabilities</div>
