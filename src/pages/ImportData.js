@@ -138,12 +138,17 @@ const ImportData = () => {
           results.data.forEach((row, index) => {
             const rowErrors = validateRow(row, index);
             if (rowErrors.length === 0) {
-              validRows.push({
+              const validRow = {
                 reportDate: row.reportDate.trim(),
                 companyId: row.companyId.trim().toLowerCase(),
                 accountTypeId: row.accountTypeId.trim().toLowerCase(),
                 amount: parseFloat(row.amount.toString().replace(/,/g, ''))
-              });
+              };
+              // Add subAccountId if provided
+              if (row.subAccountId && row.subAccountId.trim()) {
+                validRow.subAccountId = row.subAccountId.trim().toLowerCase();
+              }
+              validRows.push(validRow);
             } else {
               allErrors.push(...rowErrors);
             }
