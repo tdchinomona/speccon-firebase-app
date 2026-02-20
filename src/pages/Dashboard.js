@@ -21,7 +21,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState([]);
   const [subAccountDetails, setSubAccountDetails] = useState([]);
-  const [availableDates, setAvailableDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [error, setError] = useState(null);
   const [showSubAccounts, setShowSubAccounts] = useState(true);
@@ -31,14 +30,13 @@ const Dashboard = () => {
   const loadAvailableDates = useCallback(async () => {
     try {
       const dates = await getAvailableDates();
-      setAvailableDates(dates);
-      if (dates.length > 0) {
-        setSelectedDate(prevDate => prevDate || dates[0]);
+      if (dates.length > 0 && !selectedDate) {
+        setSelectedDate(dates[0]);
       }
     } catch (error) {
       console.error('Error loading dates:', error);
     }
-  }, []);
+  }, [selectedDate]);
 
   const loadData = useCallback(async (date) => {
     if (!date) return;
@@ -152,7 +150,6 @@ const Dashboard = () => {
       if (result.success) {
         setSummary([]);
         setSubAccountDetails([]);
-        setAvailableDates([]);
         setSelectedDate('');
         setShowDeleteConfirm(false);
         alert(`Successfully deleted ${result.deletedCount} records.`);

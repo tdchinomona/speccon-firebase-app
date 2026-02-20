@@ -6,7 +6,6 @@ import {
   orderBy,
   limit,
   addDoc,
-  deleteDoc,
   doc,
   writeBatch
 } from 'firebase/firestore';
