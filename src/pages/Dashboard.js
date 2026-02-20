@@ -560,7 +560,6 @@ const Dashboard = () => {
                               <table className="w-full">
                                 <thead className="bg-gray-50">
                                   <tr>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Company</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sub-Account</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">% of Type</th>
@@ -573,9 +572,6 @@ const Dashboard = () => {
                                       : 0;
                                     return (
                                       <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">
-                                          {detail.companyName}
-                                        </td>
                                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                                           {detail.subAccountName}
                                         </td>
@@ -605,7 +601,6 @@ const Dashboard = () => {
                         <table className="w-full">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Company</th>
                               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Account Type</th>
                               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Sub-Account</th>
                               <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
@@ -616,9 +611,6 @@ const Dashboard = () => {
                               .filter(detail => filterAccountType === 'all' || (detail.accountTypeName || detail.accountTypeId) === filterAccountType)
                               .map((detail, index) => (
                               <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                  {detail.companyName}
-                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                   {detail.accountTypeName}
                                 </td>
@@ -633,7 +625,7 @@ const Dashboard = () => {
                           </tbody>
                           <tfoot className="bg-gray-50 font-bold">
                             <tr>
-                              <td colSpan="3" className="px-6 py-4 text-gray-900">Total</td>
+                              <td colSpan="2" className="px-6 py-4 text-gray-900">Total</td>
                               <td className="px-6 py-4 text-right text-gray-900">
                                 {formatCurrency(
                                   subAccountDetails

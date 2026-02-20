@@ -176,7 +176,8 @@ export const getCashSummaryWithSubAccounts = async (date) => {
         console.warn(`Sub-account not found in Firestore: "${pos.subAccountId}". Available sub-accounts:`, subAccounts.map(sa => sa.id));
       }
       
-      const subAccountKey = `${pos.companyId}_${pos.accountTypeId}_${pos.subAccountId}`;
+      // Group by account type and sub-account only (not by company)
+      const subAccountKey = `${pos.accountTypeId}_${pos.subAccountId}`;
       
       if (!subAccountDetails[subAccountKey]) {
         // Always use name from database if available, otherwise format the ID
@@ -192,8 +193,6 @@ export const getCashSummaryWithSubAccounts = async (date) => {
         }
         
         subAccountDetails[subAccountKey] = {
-          companyId: pos.companyId,
-          companyName: summary[pos.companyId].companyName,
           accountTypeId: pos.accountTypeId,
           accountTypeName: accountType?.name || pos.accountTypeId,
           subAccountId: pos.subAccountId,
