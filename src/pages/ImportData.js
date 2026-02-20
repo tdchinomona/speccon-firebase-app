@@ -49,9 +49,8 @@ const ImportData = () => {
       const amount = parseFloat(row.amount.toString().replace(/,/g, ''));
       if (isNaN(amount)) {
         rowErrors.push(`Row ${rowNum}: Invalid amount "${row.amount}". Must be a number.`);
-      } else if (amount < 0) {
-        rowErrors.push(`Row ${rowNum}: Amount cannot be negative`);
       }
+      // Note: Negative amounts are allowed to represent reductions in account balances
     }
 
     return rowErrors;
