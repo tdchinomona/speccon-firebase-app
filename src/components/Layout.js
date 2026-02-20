@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
-  const { userProfile, logout } = useAuth();
+  const { userProfile, logout, loading } = useAuth();
   const location = useLocation();
 
   return (
@@ -42,7 +42,7 @@ const Layout = ({ children }) => {
                 >
                   Import Data
                 </Link>
-                {userProfile?.role === 'admin' && (
+                {!loading && userProfile?.role === 'admin' && (
                   <Link
                     to="/add-user"
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
