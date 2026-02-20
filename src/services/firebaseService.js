@@ -107,6 +107,14 @@ export const getCashSummaryWithSubAccounts = async (date) => {
   const accountTypes = await getAccountTypes();
   const subAccounts = await getSubAccounts();
   
+  // Debug logging
+  console.log('=== Sub-Account Debug Info ===');
+  console.log('Date:', date);
+  console.log('Total positions:', positions.length);
+  console.log('Positions with subAccountId:', positions.filter(p => p.subAccountId).length);
+  console.log('Available sub-accounts in Firestore:', subAccounts.map(sa => ({ id: sa.id, name: sa.name, active: sa.active })));
+  console.log('Sub-account IDs in positions:', [...new Set(positions.filter(p => p.subAccountId).map(p => p.subAccountId))]);
+  
   const summary = {};
   const subAccountDetails = {};
   
@@ -193,6 +201,11 @@ export const getCashSummaryWithSubAccounts = async (date) => {
       summary[pos.companyId].liabilitiesTotal += amount;
     }
   });
+  
+  // Debug logging
+  console.log('Sub-account details found:', Object.keys(subAccountDetails).length);
+  console.log('Sub-account details:', Object.values(subAccountDetails));
+  console.log('=== End Debug Info ===');
   
   return {
     summary: Object.values(summary),
