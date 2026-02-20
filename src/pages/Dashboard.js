@@ -593,51 +593,6 @@ const Dashboard = () => {
                         );
                       });
                     })()}
-                    
-                    {/* Summary table */}
-                    <div className="mt-6 pt-6 border-t-2 border-gray-200">
-                      <h3 className="text-lg font-bold text-gray-900 mb-4">All Sub-Accounts Summary</h3>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Account Type</th>
-                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Sub-Account</th>
-                              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {subAccountDetails
-                              .filter(detail => filterAccountType === 'all' || (detail.accountTypeName || detail.accountTypeId) === filterAccountType)
-                              .map((detail, index) => (
-                              <tr key={index} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                  {detail.accountTypeName}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {detail.subAccountName}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-gray-900">
-                                  {formatCurrency(detail.amount)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="bg-gray-50 font-bold">
-                            <tr>
-                              <td colSpan="2" className="px-6 py-4 text-gray-900">Total</td>
-                              <td className="px-6 py-4 text-right text-gray-900">
-                                {formatCurrency(
-                                  subAccountDetails
-                                    .filter(detail => filterAccountType === 'all' || (detail.accountTypeName || detail.accountTypeId) === filterAccountType)
-                                    .reduce((sum, d) => sum + (Number(d.amount) || 0), 0)
-                                )}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
-                    </div>
                     </>
                   ) : (
                     <div className="text-center py-12">
