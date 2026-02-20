@@ -186,15 +186,13 @@ const Dashboard = () => {
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-speccon-blue focus:border-speccon-blue outline-none transition-all font-medium"
               />
-              {userProfile?.role === 'admin' && (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
-                  title="Clear all imported data"
-                >
-                  🗑️ Clear Data
-                </button>
-              )}
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+                title="Clear all imported data"
+              >
+                🗑️ Clear Data
+              </button>
             </div>
           </div>
         </div>
