@@ -424,23 +424,26 @@ const Dashboard = () => {
             </div>
 
             {/* Sub-Account Breakdown by Account Type */}
-            {subAccountDetails.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mt-8">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">Sub-Account Analysis</h2>
-                    <p className="text-sm text-gray-600 mt-1">Detailed breakdown by account type</p>
-                  </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mt-8">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Sub-Account Analysis</h2>
+                  <p className="text-sm text-gray-600 mt-1">Detailed breakdown by account type</p>
+                </div>
+                {subAccountDetails.length > 0 && (
                   <button
                     onClick={() => setShowSubAccounts(!showSubAccounts)}
                     className="text-sm text-speccon-blue hover:text-speccon-blue-light font-medium"
                   >
                     {showSubAccounts ? 'Hide Details' : 'Show Details'}
                   </button>
-                </div>
-                {showSubAccounts && (
-                  <div className="p-6">
-                    {/* Group sub-accounts by account type */}
+                )}
+              </div>
+              {showSubAccounts && (
+                <div className="p-6">
+                  {subAccountDetails.length > 0 ? (
+                    <>
+                      {/* Group sub-accounts by account type */}
                     {(() => {
                       const groupedByAccountType = {};
                       subAccountDetails.forEach(detail => {
@@ -545,10 +548,24 @@ const Dashboard = () => {
                         </table>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                    </>
+                  ) : (
+                    <div className="text-center py-12">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">No Sub-Account Data</h3>
+                      <p className="mt-2 text-sm text-gray-500">
+                        Import data with sub-account IDs to see detailed breakdowns by account type.
+                      </p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        Include a "subAccountId" column in your CSV import to enable this feature.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
