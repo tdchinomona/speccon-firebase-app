@@ -42,6 +42,18 @@ const Layout = ({ children }) => {
                 >
                   Import Data
                 </Link>
+                {userProfile?.role === 'admin' && (
+                  <Link
+                    to="/add-user"
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      location.pathname === '/add-user'
+                        ? 'bg-white text-speccon-blue'
+                        : 'text-white hover:bg-white hover:bg-opacity-20'
+                    }`}
+                  >
+                    Add User
+                  </Link>
+                )}
               </nav>
               <span className="text-sm text-white">
                 {userProfile?.firstName} {userProfile?.lastName}

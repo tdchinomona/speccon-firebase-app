@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const Signup = () => {
+const SignupForm = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -210,6 +210,43 @@ const Signup = () => {
       </div>
     </div>
   );
+};
+
+const Signup = () => {
+  const { userProfile, loading: authLoading } = useAuth();
+  
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-speccon-blue"></div>
+          <div className="mt-4 text-xl text-gray-600">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Check if user is admin
+  if (userProfile?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="text-red-500 text-5xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+          <p className="text-gray-600 mb-6">Only administrators can create new user accounts. Please contact your administrator to create an account for you.</p>
+          <Link
+            to="/login"
+            className="inline-block px-6 py-3 bg-speccon-blue text-white rounded-lg hover:bg-speccon-blue-light transition-colors font-medium"
+          >
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  return <SignupForm />;
 };
 
 export default Signup;
