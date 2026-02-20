@@ -5,7 +5,10 @@ import {
   getDocs, 
   orderBy,
   limit,
-  addDoc
+  addDoc,
+  deleteDoc,
+  doc,
+  writeBatch
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -209,4 +212,33 @@ export const batchAddCashPositions = async (positions) => {
   }
   
   return results;
+};
+
+export const deleteAllCashPositions = async () => {
+  try {
+    const positionsRef = collection(db, 'cashPositions');
+    const snapshot = await getDocs(positionsRef);
+    
+    // Use batch writes for efficient deletion (max 500 per batch)
+    const batchSize = 500;
+    const docs = snapshot.docs;
+    let deletedCount = 0;
+    
+    for (let i = 0; i < docs.length; i += batchSize) {
+      const batch = writeBatch(db);
+      const batchDocs = docs.slice(i, i + batchSize);
+      
+      batchDocs.forEach((document) => {
+        batch.delete(doc(db, 'cashPositions', document.id));
+      });
+      
+      await batch.commit();
+      deletedCount += batchDocs.length;
+    }
+    
+    return { success: true, deletedCount };
+  } catch (error) {
+    console.error('Error deleting cash positions:', error);
+    return { success: false, error: error.message };
+  }
 };

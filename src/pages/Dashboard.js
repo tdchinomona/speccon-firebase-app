@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getCashSummary, getCashSummaryWithSubAccounts, getAvailableDates } from '../services/firebaseService';
+import { getCashSummary, getCashSummaryWithSubAccounts, getAvailableDates, deleteAllCashPositions } from '../services/firebaseService';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   BarChart, 
   Bar, 
@@ -16,13 +17,16 @@ import {
 import { format } from 'date-fns';
 
 const Dashboard = () => {
+  const { userProfile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState([]);
   const [subAccountDetails, setSubAccountDetails] = useState([]);
   const [availableDates, setAvailableDates] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('2026-02-06');
+  const [selectedDate, setSelectedDate] = useState('');
   const [error, setError] = useState(null);
   const [showSubAccounts, setShowSubAccounts] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const loadAvailableDates = useCallback(async () => {
     try {
@@ -141,6 +145,30 @@ const Dashboard = () => {
     return null;
   };
 
+  const handleDeleteAll = async () => {
+    setDeleting(true);
+    try {
+      const result = await deleteAllCashPositions();
+      if (result.success) {
+        setSummary([]);
+        setSubAccountDetails([]);
+        setAvailableDates([]);
+        setSelectedDate('');
+        setShowDeleteConfirm(false);
+        alert(`Successfully deleted ${result.deletedCount} records.`);
+        // Reload available dates
+        await loadAvailableDates();
+      } else {
+        alert(`Error deleting data: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting data:', error);
+      alert(`Error deleting data: ${error.message}`);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header Section */}
@@ -159,14 +187,50 @@ const Dashboard = () => {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                min={availableDates.length > 0 ? availableDates[availableDates.length - 1] : undefined}
-                max={availableDates.length > 0 ? availableDates[0] : undefined}
                 className="px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-speccon-blue focus:border-speccon-blue outline-none transition-all font-medium"
               />
+              {userProfile?.role === 'admin' && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+                  title="Clear all imported data"
+                >
+                  🗑️ Clear Data
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirm Delete</h3>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>ALL</strong> imported cash position data? 
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAll}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto px-6 pb-8">
         {summary.length === 0 ? (
