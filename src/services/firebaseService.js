@@ -162,6 +162,12 @@ export const getCashSummaryWithSubAccounts = async (date) => {
       const subAccount = subAccounts.find(sa => 
         sa.id.toLowerCase() === (pos.subAccountId || '').toLowerCase()
       );
+      
+      // Debug logging (can be removed in production)
+      if (!subAccount) {
+        console.warn(`Sub-account not found in Firestore: "${pos.subAccountId}". Available sub-accounts:`, subAccounts.map(sa => sa.id));
+      }
+      
       const subAccountKey = `${pos.companyId}_${pos.accountTypeId}_${pos.subAccountId}`;
       
       if (!subAccountDetails[subAccountKey]) {
