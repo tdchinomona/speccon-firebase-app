@@ -179,13 +179,25 @@ export const getCashSummaryWithSubAccounts = async (date) => {
       const subAccountKey = `${pos.companyId}_${pos.accountTypeId}_${pos.subAccountId}`;
       
       if (!subAccountDetails[subAccountKey]) {
+        // Always use name from database if available, otherwise format the ID
+        let subAccountDisplayName = pos.subAccountId;
+        if (subAccount?.name) {
+          subAccountDisplayName = subAccount.name;
+        } else if (pos.subAccountId) {
+          // Format ID: capitalize first letter of each word
+          subAccountDisplayName = pos.subAccountId
+            .split(/[-_\s]+/)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+        }
+        
         subAccountDetails[subAccountKey] = {
           companyId: pos.companyId,
           companyName: summary[pos.companyId].companyName,
           accountTypeId: pos.accountTypeId,
           accountTypeName: accountType?.name || pos.accountTypeId,
           subAccountId: pos.subAccountId,
-          subAccountName: subAccount?.name || pos.subAccountId,
+          subAccountName: subAccountDisplayName,
           amount: 0
         };
       }

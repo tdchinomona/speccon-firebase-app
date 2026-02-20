@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [showSubAccounts, setShowSubAccounts] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [filterAccountType, setFilterAccountType] = useState('all');
 
   const loadAvailableDates = useCallback(async () => {
     try {
@@ -503,6 +504,30 @@ const Dashboard = () => {
                 <div className="p-6">
                   {subAccountDetails.length > 0 ? (
                     <>
+                      {/* Filter by Account Type */}
+                      {(() => {
+                        // Get unique account types
+                        const accountTypes = [...new Set(subAccountDetails.map(d => d.accountTypeName || d.accountTypeId))];
+                        
+                        return (
+                          <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Filter by Account Type:
+                            </label>
+                            <select
+                              value={filterAccountType}
+                              onChange={(e) => setFilterAccountType(e.target.value)}
+                              className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-speccon-blue focus:border-speccon-blue outline-none transition-all font-medium bg-white"
+                            >
+                              <option value="all">All Account Types</option>
+                              {accountTypes.map(accountType => (
+                                <option key={accountType} value={accountType}>{accountType}</option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })()}
+                      
                       {/* Group sub-accounts by account type */}
                     {(() => {
                       const groupedByAccountType = {};
@@ -514,7 +539,14 @@ const Dashboard = () => {
                         groupedByAccountType[key].push(detail);
                       });
 
-                      return Object.entries(groupedByAccountType).map(([accountType, details]) => {
+                      // Filter by selected account type
+                      const filteredGroups = filterAccountType === 'all' 
+                        ? Object.entries(groupedByAccountType)
+                        : Object.entries(groupedByAccountType).filter(([accountType]) => 
+                            accountType === filterAccountType
+                          );
+
+                      return filteredGroups.map(([accountType, details]) => {
                         const accountTypeTotal = details.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
                         return (
                           <div key={accountType} className="mb-8 last:mb-0">
@@ -580,7 +612,9 @@ const Dashboard = () => {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {subAccountDetails.map((detail, index) => (
+                            {subAccountDetails
+                              .filter(detail => filterAccountType === 'all' || (detail.accountTypeName || detail.accountTypeId) === filterAccountType)
+                              .map((detail, index) => (
                               <tr key={index} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                                   {detail.companyName}
@@ -601,7 +635,11 @@ const Dashboard = () => {
                             <tr>
                               <td colSpan="3" className="px-6 py-4 text-gray-900">Total</td>
                               <td className="px-6 py-4 text-right text-gray-900">
-                                {formatCurrency(subAccountDetails.reduce((sum, d) => sum + (Number(d.amount) || 0), 0))}
+                                {formatCurrency(
+                                  subAccountDetails
+                                    .filter(detail => filterAccountType === 'all' || (detail.accountTypeName || detail.accountTypeId) === filterAccountType)
+                                    .reduce((sum, d) => sum + (Number(d.amount) || 0), 0)
+                                )}
                               </td>
                             </tr>
                           </tfoot>
