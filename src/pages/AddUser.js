@@ -14,6 +14,8 @@ const AddUser = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [createdUser, setCreatedUser] = useState(null); // Store created user credentials
+  const [copiedField, setCopiedField] = useState(null); // Track which field was copied
   const { register } = useAuth();
   const { userProfile } = useAuth();
   const navigate = useNavigate();
@@ -37,6 +39,62 @@ const AddUser = () => {
     );
   }
 
+  // Generate a random password
+  const generatePassword = () => {
+    const length = 12;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    setFormData({
+      ...formData,
+      password,
+      confirmPassword: password
+    });
+  };
+
+  // Copy to clipboard
+  const copyToClipboard = async (text, fieldName) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  // Generate email message template
+  const generateEmailMessage = () => {
+    if (!createdUser) return '';
+    return `Subject: Your SpecCon Cash Reporting System Login Credentials
+
+Dear ${createdUser.firstName} ${createdUser.lastName},
+
+Your account has been created for the SpecCon Cash Reporting System. Please use the following credentials to log in:
+
+Login URL: ${window.location.origin}/login
+Email: ${createdUser.email}
+Password: ${createdUser.password}
+Role: ${createdUser.role === 'admin' ? 'Administrator' : 'User'}
+
+Please change your password after your first login for security purposes.
+
+If you have any questions, please contact your administrator.
+
+Best regards,
+SpecCon Holdings`;
+  };
+
+  // Open email client with pre-filled message
+  const sendEmail = () => {
+    if (!createdUser) return;
+    const subject = encodeURIComponent('Your SpecCon Cash Reporting System Login Credentials');
+    const body = encodeURIComponent(generateEmailMessage());
+    window.location.href = `mailto:${createdUser.email}?subject=${subject}&body=${body}`;
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -45,6 +103,8 @@ const AddUser = () => {
     // Clear errors when user starts typing
     if (error) setError('');
     if (success) setSuccess('');
+    // Clear created user when form changes
+    if (createdUser) setCreatedUser(null);
   };
 
   const validateForm = () => {
@@ -94,7 +154,14 @@ const AddUser = () => {
         formData.lastName,
         formData.role
       );
-      // Success - reset form
+      // Success - store credentials and reset form
+      setCreatedUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
+      });
       setSuccess(`User "${formData.firstName} ${formData.lastName}" created successfully!`);
       setFormData({
         firstName: '',
@@ -230,9 +297,18 @@ const AddUser = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generatePassword}
+                    className="text-xs text-speccon-blue hover:text-speccon-blue-light font-medium"
+                  >
+                    🔑 Generate Password
+                  </button>
+                </div>
                 <input
                   type="password"
                   name="password"
@@ -283,6 +359,175 @@ const AddUser = () => {
               </div>
             </form>
           </div>
+
+          {/* Credentials Display Card */}
+          {createdUser && (
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border-2 border-blue-200 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                    ✅ User Created Successfully!
+                  </h2>
+                  <p className="text-gray-600 text-sm">
+                    Share these login credentials with {createdUser.firstName} {createdUser.lastName}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCreatedUser(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Close"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Email */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">
+                        Email Address
+                      </label>
+                      <div className="text-lg font-mono text-gray-900">{createdUser.email}</div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(createdUser.email, 'email')}
+                      className="ml-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-2"
+                    >
+                      {copiedField === 'email' ? (
+                        <>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">
+                        Password
+                      </label>
+                      <div className="text-lg font-mono text-gray-900">{createdUser.password}</div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(createdUser.password, 'password')}
+                      className="ml-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-2"
+                    >
+                      {copiedField === 'password' ? (
+                        <>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Login URL */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">
+                        Login URL
+                      </label>
+                      <div className="text-sm text-gray-700 break-all">{window.location.origin}/login</div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(`${window.location.origin}/login`, 'url')}
+                      className="ml-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center gap-2"
+                    >
+                      {copiedField === 'url' ? (
+                        <>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => copyToClipboard(generateEmailMessage(), 'message')}
+                    className="flex-1 px-4 py-3 bg-white border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    {copiedField === 'message' ? (
+                      <>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Message Copied!
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Message
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={sendEmail}
+                    className="flex-1 px-4 py-3 bg-speccon-blue text-white rounded-lg hover:bg-speccon-blue-light transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Send Email
+                  </button>
+                </div>
+
+                {/* Info Box */}
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg p-3 mt-4">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-yellow-700">
+                      <strong>Important:</strong> Save these credentials securely. The password will not be shown again. 
+                      You can copy the message above and send it via email or any messaging platform.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
