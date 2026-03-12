@@ -6,6 +6,19 @@ const Layout = ({ children }) => {
   const { userProfile, logout, loading } = useAuth();
   const location = useLocation();
 
+  // Debug: Log user profile info (remove in production if needed)
+  React.useEffect(() => {
+    if (!loading) {
+      console.log('=== Layout Debug Info ===');
+      console.log('Loading:', loading);
+      console.log('User Profile:', userProfile);
+      console.log('Role:', userProfile?.role);
+      console.log('Is Admin:', userProfile?.role === 'admin');
+      console.log('Will show Add User link:', !loading && userProfile?.role === 'admin');
+      console.log('========================');
+    }
+  }, [loading, userProfile]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-speccon-blue text-white shadow-lg">
