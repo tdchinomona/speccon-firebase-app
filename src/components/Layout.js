@@ -3,44 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
-  const { userProfile, logout, loading, user } = useAuth();
+  const { userProfile, logout, loading } = useAuth();
   const location = useLocation();
-
-  // Debug: Log user profile info (remove in production if needed)
-  React.useEffect(() => {
-    if (!loading) {
-      console.log('=== Layout Debug Info ===');
-      console.log('Loading:', loading);
-      console.log('User Profile:', userProfile);
-      console.log('Role:', userProfile?.role);
-      console.log('Role type:', typeof userProfile?.role);
-      console.log('Role trimmed:', userProfile?.role?.trim?.());
-      console.log('Is Admin (strict):', userProfile?.role === 'admin');
-      console.log('Is Admin (case-insensitive):', userProfile?.role?.toLowerCase?.() === 'admin');
-      console.log('Will show Add User link:', !loading && userProfile?.role === 'admin');
-      console.log('========================');
-    }
-  }, [loading, userProfile]);
 
   // More flexible admin check (case-insensitive, trimmed)
   const isAdmin = userProfile?.role?.toLowerCase?.()?.trim?.() === 'admin';
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Debug Panel - Remove in production */}
-      {!loading && (
-        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-2 text-xs">
-          <div className="container mx-auto">
-            <strong>Debug Info:</strong> Loading={loading ? 'Yes' : 'No'} | 
-            UID="{user?.uid || 'not logged in'}" | 
-            Role="{userProfile?.role || 'undefined'}" | 
-            Is Admin={isAdmin ? 'YES ✅' : 'NO ❌'} | 
-            Will Show Link={(!loading && isAdmin) ? 'YES ✅' : 'NO ❌'}
-            <br />
-            <strong>Fix:</strong> Go to Firestore → users collection → Create/Update document with ID="{user?.uid}" → Add field: role = "admin"
-          </div>
-        </div>
-      )}
       <nav className="bg-speccon-blue text-white shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
