@@ -27,6 +27,17 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Debug Panel - Remove in production */}
+      {!loading && (
+        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-2 text-xs">
+          <div className="container mx-auto">
+            <strong>Debug Info:</strong> Loading={loading ? 'Yes' : 'No'} | 
+            Role="{userProfile?.role || 'undefined'}" | 
+            Is Admin={isAdmin ? 'YES ✅' : 'NO ❌'} | 
+            Will Show Link={(!loading && isAdmin) ? 'YES ✅' : 'NO ❌'}
+          </div>
+        </div>
+      )}
       <nav className="bg-speccon-blue text-white shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
