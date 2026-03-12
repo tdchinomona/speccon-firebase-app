@@ -13,11 +13,17 @@ const Layout = ({ children }) => {
       console.log('Loading:', loading);
       console.log('User Profile:', userProfile);
       console.log('Role:', userProfile?.role);
-      console.log('Is Admin:', userProfile?.role === 'admin');
+      console.log('Role type:', typeof userProfile?.role);
+      console.log('Role trimmed:', userProfile?.role?.trim?.());
+      console.log('Is Admin (strict):', userProfile?.role === 'admin');
+      console.log('Is Admin (case-insensitive):', userProfile?.role?.toLowerCase?.() === 'admin');
       console.log('Will show Add User link:', !loading && userProfile?.role === 'admin');
       console.log('========================');
     }
   }, [loading, userProfile]);
+
+  // More flexible admin check (case-insensitive, trimmed)
+  const isAdmin = userProfile?.role?.toLowerCase?.()?.trim?.() === 'admin';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -55,7 +61,7 @@ const Layout = ({ children }) => {
                 >
                   Import Data
                 </Link>
-                {!loading && userProfile?.role === 'admin' && (
+                {!loading && isAdmin && (
                   <Link
                     to="/add-user"
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
